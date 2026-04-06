@@ -1,0 +1,40 @@
+import re
+import json
+import mysql.connector
+
+with open(r"C:\Firdavs\Itransition\Task 1\books.json", "r", encoding="utf-8") as f:
+    raw = f.read()
+
+raw = raw.replace("=>", ": ")
+raw = re.sub(r":(\w+)", r'"\1"', raw)
+if not raw.strip().startswith("["):
+    raw = "[" + raw.strip() + "]"
+
+data = json.loads(raw)
+
+conn = mysql.connector.connect(
+    host="127.0.0.1",
+    port=3306,
+    user="root",
+    password="159357",
+    database="task_1"
+)
+cursor = conn.cursor()
+
+for book in data:
+    title = book["title"]
+    year = book["year"]
+    price_str = book["price"]
+
+    price_clean = float(price_str.replace("$", "").replace("€", ""))
+
+    cursor.execute(
+        "INSERT INTO books_raw (title, publication_year, price_eur) VALUES (%s, %s, %s)",
+        (title, year, price_clean)
+    )
+
+conn.commit()
+cursor.close()
+conn.close()
+
+print("Data inserted successfully!")
